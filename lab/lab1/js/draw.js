@@ -7,10 +7,13 @@ Try to use one or two of the drawing tools. They should allow you to draw
 without needing any additional configuration. These shapes will not be added to
 the map. We'll fix that in the next task.
 
+
+
 Task 2: Add rectangles to map
 
 Add the rectangle layers to the map when they are drawn. Hint: you can use the
 addLayer function that we have used in the past.
+
 
 Task 3: Limit to one rectangle
 
@@ -70,15 +73,15 @@ Moving your mouse outside of the circle should remove the highlighting.
 ===================== */
 
 // Global Variables
-var myRectangle;
 
+var myRectangle = [];
 // Initialize Leaflet Draw
 var drawControl = new L.Control.Draw({
   draw: {
-    polyline: false,
-    polygon: false,
-    circle: false,
-    marker: false,
+    polyline: true,
+    polygon: true,
+    circle: true,
+    marker: true,
     rectangle: true,
   }
 });
@@ -90,4 +93,13 @@ map.on('draw:created', function (e) {
     var type = e.layerType; // The type of shape
     var layer = e.layer; // The Leaflet layer for the shape
     var id = L.stamp(layer); // The unique Leaflet ID for the layer
+    if (myRectangle !== undefined){
+         map.removeLayer(myRectangle);
+         $("#shapes").empty();
+    }
+    myRectangle = layer;
+    myRectangle.addTo(map);
+    $('#shapes').append("<div class='shape' data-leaflet-id=" + myRectangle._leaflet_id + "></div>");
+    $('.shape').append("<h1 class='current-id'>Current ID: </h1>");
+    $('.current-id').append("<span style='color:#80B6E5'>" + id + "</span>");
 });

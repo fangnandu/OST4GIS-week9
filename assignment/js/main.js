@@ -55,6 +55,8 @@ var state = {
   count: 0,
   markers: [],
   line: undefined,
+  start:[],
+  end:[]
 }
 
 /** ---------------
@@ -102,7 +104,10 @@ var resetApplication = function() {
   state.count = 0;
   state.markers = []
   state.line = undefined;
+  state.start = [];
+  state.end = [];
   $('#button-reset').hide();
+  $('.leaflet-draw').show();
 }
 
 $('#button-reset').click(resetApplication);
@@ -118,5 +123,33 @@ map.on('draw:created', function (e) {
   var layer = e.layer; // The Leaflet layer for the shape
   var id = L.stamp(layer); // The unique Leaflet ID for the
 
-  console.log('Do something with the layer you just created:', layer, layer._latlng);
+
+  if (state.count === 0){
+    state.markers[0] = layer;
+    map.addLayer(layer);
+    state.start.push(_.values(layer._latlng));
+    state.count += 1;
+
+  }else if (state.count === 1){
+    $('#button-reset').show();
+    $('.leaflet-draw').hide();
+    state.markers[1] = layer;
+    map.addLayer(layer);
+    state.end.push(_.values(layer._latlng));
+
+    var myownToken = "pk.eyJ1IjoiZmFuZ25hbiIsImEiOiJjamYzNjNpOXIwNXl4MnlsdGEzZGllMGwyIn0.8KmPhVDnyFly8Y6Xajwn4g";
+    var trip = "https://api.mapbox.com/optimized-trips/v1/mapbox/driving/" + state.start[0][1] + "," + state.start[0][0] + ";" + state.end[0][1] + "," + state.end[0][0] + "?access_token=" + myownToken;
+    $.ajax({
+          method: 'GET',
+          url:trip,
+        }).done(function(data){
+      var decodeTrip = decode(data.trips[0].geometry);
+      var latlngs = _.map(decodeTrip, function(each) {return [each[1]*10, each[0]*10];});
+      state.line = L.geoJSON(turf.lineString(latlngs), {
+        "color": "orange",
+        "weight": 3,
+        "opacity": 0.65
+      }).addTo(map);
+    });
+  }
 });
